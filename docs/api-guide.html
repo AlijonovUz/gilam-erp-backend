@@ -503,7 +503,7 @@ footer{
 
       <!-- ============ CATALOG ============ -->
       <section id="catalog">
-        <div class="section-h"><h2>Katalog (Catalog)</h2><span class="count">3 resurs</span></div>
+        <div class="section-h"><h2>Katalog (Catalog)</h2><span class="count">4 resurs</span></div>
         <p class="section-intro">Mahsulot ma'lumotnomalari &mdash; sifat, o'lchov birligi, rang. <span class="mono">Dizayn</span> va <span class="mono">Mahsulot partiyasi</span> modellari mavjud, lekin hali ViewSet/serializer yo'q &mdash; API'da ko'rinmaydi.</p>
         <div id="catalog-resources"></div>
       </section>
@@ -689,6 +689,18 @@ const RESOURCES = [
     example:{id:"70819203-1425-4c5e-af60-728394051627",name:"Qizil",description:"",color_hex:"#B33A3A",status:true,created_at:"2026-02-01T09:10:00+05:00",updated_at:"2026-02-01T09:10:00+05:00"}
   },
   {
+    id:"designs", group:"catalog", title:"Dizaynlar", base:"/api/v1/catalog/designs/",
+    app:"catalog", model:"design", activeOnly:false,
+    search:["name","description","quality__name"], ordering:["name","created_at"],
+    filters:[["name","nomi bo'yicha (icontains)"],["quality","sifat UUID (bir nechta)"],["status","true/false — faol/nofaol"],["start_date / end_date","yaratilgan sana oralig'i"]],
+    writeFields:[
+      ["quality","uuid","Ha","Tegishli sifat id'si"],
+      ["name","string","Ha","Dizayn nomi, masalan \"Zar Gul\""],
+      ["description","string","Yo'q","Tavsif"]
+    ],
+    example:{id:"81920314-2536-4d6f-b071-839405162700",quality_info:{id:"5e6f7081-9203-4a3c-8d4e-506172839405",name:"Premium"},name:"Zar Gul",description:"An'anaviy naqsh",status:true,created_at:"2026-02-01T09:12:00+05:00",updated_at:"2026-02-01T09:12:00+05:00"}
+  },
+  {
     id:"counterparty-types", group:"finance", title:"Kontragent turlari", base:"/api/v1/finance/counterparty-types/",
     app:"finance", model:"counterpartytype", activeOnly:false,
     search:["name"], ordering:["name","created_at"],
@@ -716,7 +728,7 @@ const GROUPS = [
   {key:"auth", label:"Auth", links:[["auth-login","Login"],["auth-refresh","Token yangilash"]]},
   {key:"accounts", label:"Accounts", links:[["roles","Rollar"],["users","Foydalanuvchilar"]]},
   {key:"org", label:"Tashkilot", links:[["countries","Davlatlar"],["regions","Viloyatlar"],["districts","Tumanlar"],["organizations","Tashkilotlar"],["branches","Filiallar"]]},
-  {key:"catalog", label:"Katalog", links:[["qualities","Sifatlar"],["units","O'lchov birliklari"],["colors","Ranglar"]]},
+  {key:"catalog", label:"Katalog", links:[["qualities","Sifatlar"],["units","O'lchov birliklari"],["colors","Ranglar"],["designs","Dizaynlar"]]},
   {key:"finance", label:"Moliya", links:[["counterparty-types","Kontragent turlari"]]},
   {key:"hr", label:"HR", links:[["positions","Lavozimlar"]]},
   {key:"audits", label:"Audit", links:[["audit-logs","Loglar"]]}

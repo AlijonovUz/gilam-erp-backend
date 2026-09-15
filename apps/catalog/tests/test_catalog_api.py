@@ -102,3 +102,39 @@ class CatalogReferenceAPITestCase(APITestCase):
         self.client.force_authenticate(user=None)
         response = self.client.get("/api/v1/catalog/qualities/")
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_create_design_success(self):
+        """POST /designs/ — 201 va yozuv bazada yaratiladi."""
+        response = self.client.post(
+            "/api/v1/catalog/designs/",
+            {
+                "quality": str(self.quality.id),
+                "name": "Zar Gul",
+                "description": "An'anaviy naqsh",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(Design.objects.filter(name="Zar Gul").exists())
+
+    def test_list_designs_returns_nested_quality(self):
+        """GET /designs/ — 200 va `quality_info` nested obyekt qaytadi."""
+        Design.objects.create(quality=self.quality, name="Chorbog'")
+        response = self.client.get("/api/v1/catalog/designs/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data["results"][0]["quality_info"]["id"], str(self.quality.id)
+        )
+
+    def test_create_design_invalid_data(self):
+        """POST /designs/ — `quality` bo'lmasa 400."""
+        response = self.client.post(
+            "/api/v1/catalog/designs/", {"name": "Nomsiz sifat"}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_list_designs_unauthenticated(self):
+        """Autentifikatsiyasiz so'rov — 401."""
+        self.client.force_authenticate(user=None)
+        response = self.client.get("/api/v1/catalog/designs/")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

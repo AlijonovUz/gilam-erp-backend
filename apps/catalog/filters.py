@@ -4,7 +4,9 @@ Catalog app ViewSet'lari uchun FilterSet klasslari.
 
 import django_filters
 
-from .models import ProductColor, Quality, Unit
+from apps.base.filters import UUIDInFilter
+
+from .models import Design, ProductColor, Quality, Unit
 
 
 class QualityFilter(django_filters.FilterSet):
@@ -56,3 +58,21 @@ class ProductColorFilter(django_filters.FilterSet):
     class Meta:
         model = ProductColor
         fields = ["name", "status", "start_date", "end_date"]
+
+
+class DesignFilter(django_filters.FilterSet):
+    """Dizaynlarni nomi, sifati, holati va yaratilgan sanasi bo'yicha filtrlaydi."""
+
+    name = django_filters.CharFilter(lookup_expr="icontains")
+    quality = UUIDInFilter(field_name="quality_id", lookup_expr="in")
+    status = django_filters.BooleanFilter(field_name="is_active", label="Holat")
+    start_date = django_filters.DateFilter(
+        field_name="created_at", lookup_expr="gte", label="Yaratilgan sana (dan)"
+    )
+    end_date = django_filters.DateFilter(
+        field_name="created_at", lookup_expr="lte", label="Yaratilgan sana (gacha)"
+    )
+
+    class Meta:
+        model = Design
+        fields = ["name", "quality", "status", "start_date", "end_date"]
