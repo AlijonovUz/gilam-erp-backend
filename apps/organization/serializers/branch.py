@@ -6,10 +6,8 @@ from ..models import Branch
 
 
 class BranchSerializer(BaseModelSerializer):
-    """Filial uchun serializer — tashkilot, viloyat va tuman nested qaytariladi."""
-
     warehouses_count = serializers.SerializerMethodField()
-    status = serializers.BooleanField(source="is_active", read_only=True)
+    employees_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Branch
@@ -21,11 +19,15 @@ class BranchSerializer(BaseModelSerializer):
             "region",
             "district",
             "address",
+            "is_closed",
+            "closing_reason",
             "warehouses_count",
-            "status",
+            "employees_count",
             "created_at",
             "updated_at",
         ]
+        read_only_fields = ["is_closed", "closing_reason"]
+
         related_fields = {
             "organization": {"fields": ["id", "name"]},
             "region": {"fields": ["id", "name"]},
@@ -33,8 +35,13 @@ class BranchSerializer(BaseModelSerializer):
         }
 
     def get_warehouses_count(self, obj):
-        """Filialga tegishli faol omborlar sonini qaytaradi."""
         annotated = obj.__dict__.get("warehouses_count")
         if annotated is not None:
             return annotated
         return obj.warehouses.filter(is_active=True).count()
+
+    def get_employees_count(self, obj):
+        annotated = obj.__dict__.get("employees_count")
+        if annotated is not None:
+            return annotated
+        return obj.employees.filter(is_active=True).count()

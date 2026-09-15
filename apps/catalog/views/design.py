@@ -11,7 +11,7 @@ from ..serializers import DesignSerializer
 class DesignViewSet(BaseManageViewSet):
     """Dizaynlar uchun CRUD ViewSet."""
 
-    queryset = Design.objects.select_related("quality").all()
+    queryset = Design.objects.select_related("quality").active()
     serializer_class = DesignSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = DesignFilter

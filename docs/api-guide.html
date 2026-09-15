@@ -692,13 +692,13 @@ const RESOURCES = [
     id:"designs", group:"catalog", title:"Dizaynlar", base:"/api/v1/catalog/designs/",
     app:"catalog", model:"design", activeOnly:false,
     search:["name","description","quality__name"], ordering:["name","created_at"],
-    filters:[["name","nomi bo'yicha (icontains)"],["quality","sifat UUID (bir nechta)"],["status","true/false — faol/nofaol"],["start_date / end_date","yaratilgan sana oralig'i"]],
+    filters:[["name","nomi bo'yicha (icontains)"],["quality","sifat UUID (bir nechta)"],["start_date / end_date","yaratilgan sana oralig'i"]],
     writeFields:[
       ["quality","uuid","Ha","Tegishli sifat id'si"],
       ["name","string","Ha","Dizayn nomi, masalan \"Zar Gul\""],
       ["description","string","Yo'q","Tavsif"]
     ],
-    example:{id:"81920314-2536-4d6f-b071-839405162700",quality_info:{id:"5e6f7081-9203-4a3c-8d4e-506172839405",name:"Premium"},name:"Zar Gul",description:"An'anaviy naqsh",status:true,created_at:"2026-02-01T09:12:00+05:00",updated_at:"2026-02-01T09:12:00+05:00"}
+    example:{id:"81920314-2536-4d6f-b071-839405162700",quality_info:{id:"5e6f7081-9203-4a3c-8d4e-506172839405",name:"Premium"},name:"Zar Gul",description:"An'anaviy naqsh",created_at:"2026-02-01T09:12:00+05:00",updated_at:"2026-02-01T09:12:00+05:00"}
   },
   {
     id:"counterparty-types", group:"finance", title:"Kontragent turlari", base:"/api/v1/finance/counterparty-types/",

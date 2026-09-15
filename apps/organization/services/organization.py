@@ -2,8 +2,8 @@ from ..models import Organization
 
 
 def get_organization_status_counts():
-    """Faol va to'xtatilgan tashkilotlar sonini qaytaradi."""
+    active_qs = Organization.objects.active()
     return {
-        "active": Organization.objects.active().count(),
-        "inactive": Organization.objects.inactive().count(),
+        "active": active_qs.filter(is_suspended=False).count(),
+        "suspended": active_qs.filter(is_suspended=True).count(),
     }

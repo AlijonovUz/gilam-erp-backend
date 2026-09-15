@@ -9,9 +9,7 @@ from ..serializers import UnitSerializer
 
 
 class UnitViewSet(BaseManageViewSet):
-    """O'lchov birliklari uchun CRUD ViewSet."""
-
-    queryset = Unit.objects.all()
+    queryset = Unit.objects.active()
     serializer_class = UnitSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = UnitFilter

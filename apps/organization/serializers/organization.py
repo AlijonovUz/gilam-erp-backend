@@ -6,10 +6,7 @@ from ..models import Organization
 
 
 class OrganizationSerializer(BaseModelSerializer):
-    """Tashkilot uchun serializer — viloyat va tuman nested qaytariladi."""
-
     branches_count = serializers.SerializerMethodField()
-    status = serializers.BooleanField(source="is_active", read_only=True)
 
     class Meta:
         model = Organization
@@ -23,18 +20,20 @@ class OrganizationSerializer(BaseModelSerializer):
             "district",
             "address",
             "prefix",
+            "is_suspended",
+            "suspension_reason",
             "branches_count",
-            "status",
             "created_at",
             "updated_at",
         ]
+        read_only_fields = ["is_suspended", "suspension_reason"]
+
         related_fields = {
             "region": {"fields": ["id", "name"]},
             "district": {"fields": ["id", "name"]},
         }
 
     def get_branches_count(self, obj):
-        """Tashkilotga tegishli faol filiallar sonini qaytaradi."""
         annotated = obj.__dict__.get("branches_count")
         if annotated is not None:
             return annotated

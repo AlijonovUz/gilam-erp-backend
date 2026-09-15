@@ -4,11 +4,20 @@ from apps.base.models import BaseModel
 
 
 class Employee(BaseModel):
-    """Xodim — filialga biriktirilgan."""
-
+    organization = models.ForeignKey(
+        "organization.Organization",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="employees",
+        db_index=True,
+        verbose_name="Tashkilot",
+    )
     branch = models.ForeignKey(
         "organization.Branch",
         on_delete=models.PROTECT,
+        null=True,
+        blank=True,
         related_name="employees",
         db_index=True,
         verbose_name="Filial",
@@ -54,5 +63,4 @@ class Employee(BaseModel):
         verbose_name_plural = "Xodimlar"
 
     def __str__(self):
-        """Xodim F.I.Sh. ni qaytaradi."""
         return self.full_name

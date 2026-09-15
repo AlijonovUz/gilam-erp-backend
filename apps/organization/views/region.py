@@ -9,11 +9,10 @@ from ..serializers import RegionSerializer
 
 
 class RegionViewSet(BaseManageViewSet):
-    """Viloyatlar uchun CRUD ViewSet."""
-
     queryset = Region.objects.active().select_related("country")
     serializer_class = RegionSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = RegionFilter
     search_fields = ["name", "country__name"]
     ordering_fields = ["name", "created_at"]
+    safe_methods_unrestricted = True

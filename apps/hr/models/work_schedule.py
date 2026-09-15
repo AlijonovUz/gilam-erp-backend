@@ -4,8 +4,6 @@ from apps.base.models import BaseModel
 
 
 class WorkSchedule(BaseModel):
-    """Ish jadvali — filial uchun belgilangan davr."""
-
     branch = models.ForeignKey(
         "organization.Branch",
         on_delete=models.PROTECT,
@@ -26,13 +24,10 @@ class WorkSchedule(BaseModel):
         verbose_name_plural = "Ish jadvallari"
 
     def __str__(self):
-        """Ish jadvali nomini qaytaradi."""
         return self.name
 
 
 class WorkScheduleItem(BaseModel):
-    """Ish jadvali kuni — bayram, qisman yoki to'liq ish kuni."""
-
     class DayType(models.TextChoices):
         FULL_HOLIDAY = "full_holiday", "To'liq bayram"
         PARTIAL_WORKDAY = "partial_workday", "Qisman ish kuni"
@@ -62,5 +57,4 @@ class WorkScheduleItem(BaseModel):
         verbose_name_plural = "Ish jadvali kunlari"
 
     def __str__(self):
-        """Kun sanasi va turini qaytaradi."""
         return f"{self.day_date} — {self.get_day_type_display()}"

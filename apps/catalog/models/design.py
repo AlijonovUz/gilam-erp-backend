@@ -6,8 +6,6 @@ from .quality import Quality
 
 
 class Design(BaseModel):
-    """Gilam dizayni — sifatga bog'liq."""
-
     quality = models.ForeignKey(
         Quality,
         on_delete=models.PROTECT,
@@ -24,13 +22,10 @@ class Design(BaseModel):
         verbose_name_plural = "Dizaynlar"
 
     def __str__(self):
-        """Dizayn nomini qaytaradi."""
         return self.name
 
 
 class DesignPhoto(BaseModel):
-    """Dizayn fotosurati."""
-
     design = models.ForeignKey(
         Design,
         on_delete=models.CASCADE,
@@ -48,5 +43,4 @@ class DesignPhoto(BaseModel):
         verbose_name_plural = "Dizayn fotosuratlari"
 
     def __str__(self):
-        """Fotosurat nomini qaytaradi."""
         return self.name

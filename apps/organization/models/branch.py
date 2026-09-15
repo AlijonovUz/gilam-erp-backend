@@ -8,8 +8,6 @@ from .region import Region
 
 
 class Branch(BaseModel):
-    """Filial — tashkilotning savdo nuqtasi."""
-
     organization = models.ForeignKey(
         Organization,
         on_delete=models.PROTECT,
@@ -36,12 +34,26 @@ class Branch(BaseModel):
         verbose_name="Tuman",
     )
     address = models.TextField(blank=True, default="", verbose_name="Manzil")
+    is_closed = models.BooleanField(
+        default=False,
+        db_index=True,
+        verbose_name="Yopilgan",
+        help_text="Filial yopilganligi holati",
+    )
+    closing_reason = models.TextField(
+        blank=True,
+        default="",
+        verbose_name="Yopilish sababi",
+    )
 
     class Meta:
         db_table = "organization_branch"
         verbose_name = "Filial"
         verbose_name_plural = "Filiallar"
+        permissions = [
+            ("close_branch", "Filialni yopish"),
+            ("open_branch", "Filialni ochish"),
+        ]
 
     def __str__(self):
-        """Filial nomini qaytaradi."""
         return self.name

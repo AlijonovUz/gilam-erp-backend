@@ -9,9 +9,7 @@ from ..serializers import QualitySerializer
 
 
 class QualityViewSet(BaseManageViewSet):
-    """Sifatlar uchun CRUD ViewSet."""
-
-    queryset = Quality.objects.all()
+    queryset = Quality.objects.active()
     serializer_class = QualitySerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = QualityFilter
