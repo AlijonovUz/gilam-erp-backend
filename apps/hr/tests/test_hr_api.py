@@ -364,6 +364,103 @@ class RecruitmentDismissalAPITestCase(HRBaseAPITestCase):
             ).exists()
         )
 
+    def test_bulk_create_recruitment_success(self):
+        self.client.force_authenticate(self.user_org1)
+        emp3 = Employee.objects.create(
+            organization=self.org1,
+            branch=self.branch1,
+            full_name="Emp 3",
+        )
+        data = {
+            "items": [
+                {
+                    "type": "recruitment",
+                    "branch": str(self.branch1.id),
+                    "employee": str(self.emp1.id),
+                    "position": str(self.position.id),
+                    "card_number": "8600123456789012",
+                    "salary_type": "fixed_amount",
+                    "fix_summa": "5000000.00",
+                    "rec_dism_date": "2026-01-10",
+                },
+                {
+                    "type": "recruitment",
+                    "branch": str(self.branch1.id),
+                    "employee": str(emp3.id),
+                    "position": str(self.position.id),
+                    "card_number": "8600123456789013",
+                    "salary_type": "fixed_amount",
+                    "fix_summa": "4500000.00",
+                    "rec_dism_date": "2026-01-10",
+                },
+            ]
+        }
+        response = self.client.post(
+            "/api/v1/hr/recruitment-dismissals/bulk-create/", data, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(len(response.data), 2)
+        self.assertTrue(
+            RecruitmentDismissal.objects.filter(employee=self.emp1).exists()
+        )
+        self.assertTrue(RecruitmentDismissal.objects.filter(employee=emp3).exists())
+        self.assertTrue(
+            EmployeeLedger.objects.filter(
+                employee=emp3, type=EmployeeLedger.Type.RECRUITMENT
+            ).exists()
+        )
+
+    def test_bulk_create_recruitment_empty_items_invalid_data(self):
+        self.client.force_authenticate(self.user_org1)
+        response = self.client.post(
+            "/api/v1/hr/recruitment-dismissals/bulk-create/",
+            {"items": []},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_bulk_create_recruitment_one_invalid_item_rolls_back_all(self):
+        self.client.force_authenticate(self.user_org1)
+        data = {
+            "items": [
+                {
+                    "type": "recruitment",
+                    "branch": str(self.branch1.id),
+                    "employee": str(self.emp1.id),
+                    "position": str(self.position.id),
+                    "card_number": "8600123456789012",
+                    "salary_type": "fixed_amount",
+                    "fix_summa": "5000000.00",
+                    "rec_dism_date": "2026-01-10",
+                },
+                {
+                    "type": "recruitment",
+                    "branch": str(self.branch1.id),
+                    "employee": str(self.emp2.id),
+                    "position": str(self.position.id),
+                    "card_number": "8600123456789013",
+                    "salary_type": "fixed_amount",
+                    "fix_summa": "4500000.00",
+                    "rec_dism_date": "2026-01-10",
+                },
+            ]
+        }
+        response = self.client.post(
+            "/api/v1/hr/recruitment-dismissals/bulk-create/", data, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(
+            RecruitmentDismissal.objects.filter(employee=self.emp1).exists()
+        )
+
+    def test_bulk_create_recruitment_unauthenticated(self):
+        response = self.client.post(
+            "/api/v1/hr/recruitment-dismissals/bulk-create/",
+            {"items": []},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
     def test_create_recruitment_with_other_org_employee_fails(self):
         self.client.force_authenticate(self.user_org1)
         data = {
