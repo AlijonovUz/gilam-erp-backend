@@ -472,7 +472,7 @@ footer{
           <div class="codeblock"><pre id="login-req"></pre><button class="copy-btn" data-target="login-req">nusxa</button></div>
           <div class="sub-h">Javob &middot; 200</div>
           <div class="codeblock"><pre id="login-res"></pre><button class="copy-btn" data-target="login-res">nusxa</button></div>
-          <div class="note">Muvaffaqiyatsiz login &rarr; <span class="mono">401</span> ("Berilgan ma'lumotlar bilan faol hisob topilmadi").</div>
+          <div class="note">Muvaffaqiyatsiz login &rarr; <span class="mono">401</span> ("Berilgan ma'lumotlar bilan faol hisob topilmadi"). Bloklangan foydalanuvchi (<a href="#users">Foydalanuvchilar</a> &rarr; <span class="mono">is_blocked</span>) &rarr; <span class="mono">400</span>, sabab bilan birga.</div>
         </div>
 
         <div class="card" id="auth-refresh">
@@ -584,7 +584,7 @@ const RESOURCES = [
     id:"users", group:"accounts", title:"Foydalanuvchilar", base:"/api/v1/accounts/users/",
     app:"accounts", model:"user", swaggerHidden:true, activeOnly:true,
     search:["full_name","phone_number"], ordering:["full_name","created_at"],
-    filters:[["full_name","F.I.Sh. bo'yicha (icontains)"],["phone_number","telefon bo'yicha (icontains)"],["role","rol UUID (vergul bilan bir nechta)"],["branch","filial UUID (vergul bilan bir nechta)"],["is_staff","true/false"]],
+    filters:[["full_name","F.I.Sh. bo'yicha (icontains)"],["phone_number","telefon bo'yicha (icontains)"],["role","rol UUID (vergul bilan bir nechta)"],["branch","filial UUID (vergul bilan bir nechta)"],["is_staff","true/false"],["is_blocked","true/false — bloklangan/bloklanmagan"]],
     writeFields:[
       ["full_name","string","Ha","F.I.Sh."],
       ["phone_number","string","Ha","Login sifatida ishlatiladi, unikal"],
@@ -593,8 +593,12 @@ const RESOURCES = [
       ["branch","uuid","Yo'q","Mavjud filial id'si"],
       ["is_staff","boolean","Yo'q","true bo'lsa /admin/ ga kira oladi"]
     ],
-    example:{id:"4d2f8b10-77a1-4c9e-9b2a-1e3f4a5b6c7d",full_name:"Aziza Karimova",phone_number:"+998901234567",is_staff:false,role_info:{id:"9c1a2e40-11b2-4a7e-8f3d-0a5b6c7d8e01",name:"Sotuvchi"},branch_info:{id:"7b6a5c4d-3e2f-41a0-9b8c-0d1e2f3a4b5c",name:"Chilonzor filiali"},created_at:"2026-02-11T09:15:00+05:00",updated_at:"2026-02-11T09:15:00+05:00"},
-    extraNote:"Javobda <span class=\"mono\">password</span>, <span class=\"mono\">role</span>, <span class=\"mono\">branch</span> ko'rinmaydi — ular faqat yozish uchun; o'qishda ularning o'rnini <span class=\"mono\">role_info</span> / <span class=\"mono\">branch_info</span> (id + name) egallaydi."
+    example:{id:"4d2f8b10-77a1-4c9e-9b2a-1e3f4a5b6c7d",full_name:"Aziza Karimova",phone_number:"+998901234567",is_staff:false,role_info:{id:"9c1a2e40-11b2-4a7e-8f3d-0a5b6c7d8e01",name:"Sotuvchi"},branch_info:{id:"7b6a5c4d-3e2f-41a0-9b8c-0d1e2f3a4b5c",name:"Chilonzor filiali"},is_blocked:false,blocked_reason:null,blocked_at:null,blocked_by:null,created_at:"2026-02-11T09:15:00+05:00",updated_at:"2026-02-11T09:15:00+05:00"},
+    extraNote:"Javobda <span class=\"mono\">password</span>, <span class=\"mono\">role</span>, <span class=\"mono\">branch</span> ko'rinmaydi — ular faqat yozish uchun; o'qishda ularning o'rnini <span class=\"mono\">role_info</span> / <span class=\"mono\">branch_info</span> (id + name) egallaydi. <span class=\"mono\">is_blocked</span>/<span class=\"mono\">blocked_reason</span>/<span class=\"mono\">blocked_at</span>/<span class=\"mono\">blocked_by</span> — hisoblanadigan maydonlar (eng oxirgi bloklash yozuvidan). Xodim <a href=\"#recruitment-dismissals\">ishdan chiqarilsa</a> — akkaunt avtomatik bloklanadi.",
+    actions:[
+      {method:"PATCH",path:"/api/v1/accounts/users/{id}/block/",desc:"Foydalanuvchini qo'lda bloklaydi (login taqiqlanadi). Body: {\"reason\": \"...\"} — majburiy. Ruxsat: accounts.block_user.",res:{id:"4d2f8b10-77a1-4c9e-9b2a-1e3f4a5b6c7d",full_name:"Aziza Karimova",is_blocked:true,detail:"Foydalanuvchi bloklandi."}},
+      {method:"PATCH",path:"/api/v1/accounts/users/{id}/unblock/",desc:"Foydalanuvchini blokdan chiqaradi. Ruxsat: accounts.unblock_user.",res:{id:"4d2f8b10-77a1-4c9e-9b2a-1e3f4a5b6c7d",full_name:"Aziza Karimova",is_blocked:false,detail:"Foydalanuvchi blokdan chiqarildi."}}
+    ]
   },
   {
     id:"countries", group:"org", title:"Davlatlar", base:"/api/v1/organization/countries/",
