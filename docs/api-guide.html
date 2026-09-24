@@ -916,6 +916,76 @@ const RESOURCES = [
     example:{id:"92031425-3647-4e70-c182-940516273849",name:"Yetkazib beruvchi",status:true,created_at:"2026-02-01T09:20:00+05:00",updated_at:"2026-02-01T09:20:00+05:00"}
   },
   {
+    id:"payments", group:"finance", title:"To'lovlar", base:"/api/v1/finance/payments/",
+    app:"finance", model:"payment", activeOnly:true,
+    search:["customer__full_name"], ordering:["created_at","amount"],
+    filters:[["organization","tashkilot UUID (bir nechta)"],["order","chek UUID (bir nechta)"],["installment_agreement","shartnoma UUID (bir nechta)"],["customer","mijoz UUID (bir nechta)"],["payment_method","cash/card/bank_transfer/click/payme/apelsin"],["payment_type","order_payment/debt_payment/down_payment"],["start_date / end_date","yaratilgan sana oralig'i"]],
+    writeFields:[
+      ["organization","uuid","Ha","Tashkilot id'si"],
+      ["order","uuid","Yo'q","Sotuv to'lovi bo'lsa bog'lanadi"],
+      ["installment_agreement","uuid","Yo'q","Muddatli to'lov shartnomasi bo'yicha to'lov bo'lsa bog'lanadi"],
+      ["customer","uuid","Yo'q","Nasiya yopilganda kim to'laganini bilish uchun"],
+      ["amount","decimal","Ha","Summa"],
+      ["payment_method","string","Ha","\"cash\", \"card\", \"bank_transfer\", \"click\", \"payme\" yoki \"apelsin\""],
+      ["payment_type","string","Ha","\"order_payment\", \"debt_payment\" yoki \"down_payment\""]
+    ],
+    example:{id:"4d5e6f70-8192-4a3b-1c2d-3e4f50617281",organization_info:{id:"4d5e6f70-8192-4a3b-cd3e-4f5061728394",name:"\"Gilam Olami\" MChJ"},order_info:{id:"2b3c4d5e-6f70-4192-a304-5b2c3d4e5f60"},installment_agreement_info:null,customer_info:{id:"1a2b3c4d-5e6f-4081-9203-4a1b2c3d4e5f",full_name:"Aliyev Vali"},amount:"500000.00",payment_method:"cash",payment_type:"order_payment",created_at:"2026-02-20T09:00:00+05:00",updated_at:"2026-02-20T09:00:00+05:00"},
+    extraNote:"Scope — <span class=\"mono\">organization</span> darajasida. Hozircha <span class=\"mono\">Order</span>/<span class=\"mono\">DebtLedger</span>ning <span class=\"mono\">paid_amount</span>/<span class=\"mono\">remaining_debt</span> maydonlarini avtomatik yangilamaydi — bu service-qatlam avtomatikasi rejalashtirilgan."
+  },
+  {
+    id:"debt-ledgers", group:"finance", title:"Nasiya daftari", base:"/api/v1/finance/debt-ledgers/",
+    app:"finance", model:"debtledger", activeOnly:true,
+    search:["customer__full_name"], ordering:["created_at","remaining_debt"],
+    filters:[["organization","tashkilot UUID (bir nechta)"],["customer","mijoz UUID (bir nechta)"],["order","chek UUID (bir nechta)"],["status","active/paid/overdue"],["start_date / end_date","yaratilgan sana oralig'i"]],
+    writeFields:[
+      ["organization","uuid","Ha","Tashkilot id'si"],
+      ["customer","uuid","Ha","Mijoz id'si"],
+      ["order","uuid","Ha","Tegishli sotuv cheki id'si"],
+      ["total_debt","decimal","Ha","Jami qarz summasi"],
+      ["remaining_debt","decimal","Ha","Qolgan qarz summasi"],
+      ["due_date","datetime","Yo'q","To'lash oxirgi muddati"],
+      ["status","string","Yo'q","\"active\" (default), \"paid\" yoki \"overdue\""]
+    ],
+    example:{id:"5e6f7081-9203-4a3c-2d3e-4f5061728192",organization_info:{id:"4d5e6f70-8192-4a3b-cd3e-4f5061728394",name:"\"Gilam Olami\" MChJ"},customer_info:{id:"1a2b3c4d-5e6f-4081-9203-4a1b2c3d4e5f",full_name:"Aliyev Vali"},order_info:{id:"2b3c4d5e-6f70-4192-a304-5b2c3d4e5f60"},total_debt:"500000.00",remaining_debt:"300000.00",due_date:null,status:"active",created_at:"2026-02-20T09:05:00+05:00",updated_at:"2026-02-20T09:05:00+05:00"},
+    extraNote:"Scope — <span class=\"mono\">organization</span> darajasida."
+  },
+  {
+    id:"installment-agreements", group:"finance", title:"Muddatli to'lov shartnomalari", base:"/api/v1/finance/installment-agreements/",
+    app:"finance", model:"installmentagreement", activeOnly:true,
+    search:["agreement_number","customer__full_name"], ordering:["created_at","total_amount"],
+    filters:[["agreement_number","shartnoma raqami bo'yicha (icontains)"],["organization","tashkilot UUID (bir nechta)"],["customer","mijoz UUID (bir nechta)"],["order","chek UUID (bir nechta)"],["status","active/closed/overdue"],["start_date / end_date","yaratilgan sana oralig'i"]],
+    writeFields:[
+      ["organization","uuid","Ha","Tashkilot id'si"],
+      ["order","uuid","Ha","Tegishli sotuv cheki id'si — har bir chek uchun faqat bitta shartnoma (unique)"],
+      ["customer","uuid","Ha","Mijoz id'si"],
+      ["agreement_number","string","Ha","Shartnoma raqami — noyob bo'lishi shart"],
+      ["total_amount","decimal","Ha","Jami summa (ustamalari bilan)"],
+      ["down_payment","decimal","Ha","Boshlang'ich to'lov"],
+      ["remaining_amount","decimal","Ha","Qolgan muddatli to'lanadigan summa"],
+      ["number_of_months","int","Ha","Necha oyga bo'lingan (masalan 3, 6, 12)"],
+      ["markup_pct","decimal","Yo'q","Ustama foizi (rassrochka ustamasi) — default 0"],
+      ["status","string","Yo'q","\"active\" (default), \"closed\" yoki \"overdue\""]
+    ],
+    example:{id:"6f708192-0314-4b4d-3e4f-506172819203",organization_info:{id:"4d5e6f70-8192-4a3b-cd3e-4f5061728394",name:"\"Gilam Olami\" MChJ"},order_info:{id:"2b3c4d5e-6f70-4192-a304-5b2c3d4e5f60"},customer_info:{id:"1a2b3c4d-5e6f-4081-9203-4a1b2c3d4e5f",full_name:"Aliyev Vali"},agreement_number:"ST-0001",total_amount:"1200000.00",down_payment:"200000.00",remaining_amount:"1000000.00",number_of_months:6,markup_pct:"0.00",status:"active",created_at:"2026-02-20T09:10:00+05:00",updated_at:"2026-02-20T09:10:00+05:00"},
+    extraNote:"Scope — <span class=\"mono\">organization</span> darajasida."
+  },
+  {
+    id:"installment-schedules", group:"finance", title:"Oylik to'lov grafiklari", base:"/api/v1/finance/installment-schedules/",
+    app:"finance", model:"installmentschedule", activeOnly:true,
+    ordering:["due_date","payment_number","created_at"],
+    filters:[["agreement","shartnoma UUID (bir nechta)"],["status","pending/paid/partially_paid/overdue"],["due_date","muddat sanasi (YYYY-MM-DD)"],["start_date / end_date","yaratilgan sana oralig'i"]],
+    writeFields:[
+      ["agreement","uuid","Ha","Tegishli muddatli to'lov shartnomasi id'si"],
+      ["payment_number","int","Ha","Nechinchi oylik to'lov (masalan 1, 2, 3...)"],
+      ["due_date","date","Ha","To'lov muddati, YYYY-MM-DD"],
+      ["amount_to_pay","decimal","Ha","To'lanishi kerak bo'lgan oylik qism"],
+      ["paid_amount","decimal","Yo'q","Haqiqatda to'langan qism — default 0"],
+      ["status","string","Yo'q","\"pending\" (default), \"paid\", \"partially_paid\" yoki \"overdue\""]
+    ],
+    example:{id:"70819203-1425-4c5e-4f50-617281920314",agreement_info:{id:"6f708192-0314-4b4d-3e4f-506172819203",agreement_number:"ST-0001"},payment_number:1,due_date:"2026-03-01",amount_to_pay:"166666.00",paid_amount:"0.00",status:"pending",created_at:"2026-02-20T09:12:00+05:00",updated_at:"2026-02-20T09:12:00+05:00"},
+    extraNote:"Bu resursda to'g'ridan-to'g'ri <span class=\"mono\">organization</span>/<span class=\"mono\">branch</span> maydoni yo'q — scope <span class=\"mono\">agreement__organization</span> orqali qo'lda cheklangan (<span class=\"mono\">TenantBranchScopeMixin</span> to'g'ridan-to'g'ri bilmaydi)."
+  },
+  {
     id:"employees", group:"hr", title:"Xodimlar", base:"/api/v1/hr/employees/",
     app:"hr", model:"employee", activeOnly:false,
     search:["full_name","phone_number","passport_seria","passport_number","jsshr","stir","address"], ordering:["full_name","created_at"],
@@ -1003,7 +1073,7 @@ const GROUPS = [
   {key:"warehouse", label:"Ombor", links:[["warehouses","Omborlar"],["product-stocks","Ombor qoldiqlari"],["carpet-rolls","Rulonlar"],["stock-transactions","Ombor harakatlari"]]},
   {key:"procurement", label:"Ta'minot", links:[["suppliers","Yetkazuvchilar"],["supplier-purchases","Xarid hujjatlari"],["supplier-purchase-items","Xarid qatorlari"]]},
   {key:"sales", label:"Savdo", links:[["customers","Mijozlar"],["orders","Sotuv cheklari"],["order-items","Chek qatorlari"]]},
-  {key:"finance", label:"Moliya", links:[["counterparty-types","Kontragent turlari"]]},
+  {key:"finance", label:"Moliya", links:[["counterparty-types","Kontragent turlari"],["payments","To'lovlar"],["debt-ledgers","Nasiya daftari"],["installment-agreements","Muddatli to'lov shartnomalari"],["installment-schedules","Oylik to'lov grafiklari"]]},
   {key:"hr", label:"HR", links:[["employees","Xodimlar"],["positions","Lavozimlar"],["recruitment-dismissals","Ishga olish / bo'shatish"],["work-schedules","Ish grafiklari"]]},
   {key:"audits", label:"Audit", links:[["audit-logs","Loglar"]]}
 ];
