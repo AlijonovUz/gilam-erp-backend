@@ -790,6 +790,56 @@ const RESOURCES = [
     extraNote:"Bu — audit/ledger jadvali: hozircha oddiy CRUD orqali qo'lda yoziladi. Kelajakda Xarid/Savdo/Qaytarish modullari qo'shilganda, shu yozuvlar o'sha hujjatlar saqlanganda <b>avtomatik</b> (service qatlamida) hosil qilinishi rejalashtirilgan — hozircha bunday avtomatika yo'q. <span class=\"mono\">ref_id</span> hali hech qanday FK bilan bog'lanmagan (bog'liq modellar mavjud emas), shuning uchun erkin UUID sifatida saqlanadi. Scope — <span class=\"mono\">organization</span> darajasida (filial emas, chunki <span class=\"mono\">TRANSFER</span> filiallar orasida bo'lishi mumkin)."
   },
   {
+    id:"suppliers", group:"procurement", title:"Yetkazuvchilar", base:"/api/v1/procurement/suppliers/",
+    app:"procurement", model:"supplier", activeOnly:true,
+    search:["name","phone","address"], ordering:["name","created_at"],
+    filters:[["name","nomi bo'yicha (icontains)"],["organization","tashkilot UUID (bir nechta)"],["start_date / end_date","yaratilgan sana oralig'i"]],
+    writeFields:[
+      ["organization","uuid","Ha","Tegishli tashkilot id'si"],
+      ["name","string","Ha","Yetkazuvchi nomi, masalan \"«SAMARQAND TEKS» MCHJ\""],
+      ["phone","string","Yo'q",""],
+      ["address","string","Yo'q",""],
+      ["balance_debt","decimal","Yo'q","Bizning yetkazuvchidan qarzimiz — default 0, hozircha qo'lda kiritiladi"]
+    ],
+    example:{id:"e7f80910-2134-4d43-f061-728394a1b2c3",organization_info:{id:"4d5e6f70-8192-4a3b-cd3e-4f5061728394",name:"\"Gilam Olami\" MChJ"},name:"«SAMARQAND TEKS» MCHJ",phone:"+998662334010",address:"",balance_debt:"0.00",created_at:"2026-02-15T09:00:00+05:00",updated_at:"2026-02-15T09:00:00+05:00"},
+    extraNote:"Scope — <span class=\"mono\">organization</span> darajasida (sistem admin bo'lmasa)."
+  },
+  {
+    id:"supplier-purchases", group:"procurement", title:"Xarid hujjatlari", base:"/api/v1/procurement/purchases/",
+    app:"procurement", model:"supplierpurchase", activeOnly:true,
+    search:["supplier__name","warehouse__name"], ordering:["created_at","total_amount"],
+    filters:[["organization","tashkilot UUID (bir nechta)"],["supplier","yetkazuvchi UUID (bir nechta)"],["warehouse","ombor UUID (bir nechta)"],["start_date / end_date","yaratilgan sana oralig'i"]],
+    writeFields:[
+      ["organization","uuid","Ha","Tashkilot id'si"],
+      ["supplier","uuid","Ha","Yetkazuvchi id'si"],
+      ["warehouse","uuid","Ha","Qaysi omborga kirim qilinayotgani"],
+      ["total_amount","decimal","Ha","Jami summa"],
+      ["paid_amount","decimal","Yo'q","To'langan summa — default 0"],
+      ["debt_amount","decimal","Yo'q","Qarz summa — default 0"]
+    ],
+    example:{id:"f8091021-3245-4e54-1728-394a1b2c3d4e",organization_info:{id:"4d5e6f70-8192-4a3b-cd3e-4f5061728394",name:"\"Gilam Olami\" MChJ"},supplier_info:{id:"e7f80910-2134-4d43-f061-728394a1b2c3",name:"«SAMARQAND TEKS» MCHJ"},warehouse_info:{id:"a3b4c5d6-e7f8-4910-bc2d-3e4f50617299",name:"Zavod ombori"},total_amount:"104480000.00",paid_amount:"40000000.00",debt_amount:"64480000.00",created_at:"2026-02-15T09:05:00+05:00",updated_at:"2026-02-15T09:05:00+05:00"},
+    extraNote:"<span class=\"mono\">paid_amount</span>/<span class=\"mono\">debt_amount</span> hozircha qo'lda kiritiladi — to'lov (<span class=\"mono\">Payment</span>) moduli qo'shilgach avtomatik hisoblanishi rejalashtirilgan. Scope — <span class=\"mono\">organization</span> darajasida."
+  },
+  {
+    id:"supplier-purchase-items", group:"procurement", title:"Xarid qatorlari", base:"/api/v1/procurement/purchase-items/",
+    app:"procurement", model:"supplierpurchaseitem", activeOnly:true,
+    search:["roll_number","product_party__name"], ordering:["created_at"],
+    filters:[["purchase","xarid hujjati UUID (bir nechta)"],["product_party","mahsulot partiyasi UUID (bir nechta)"],["roll_number","rulon raqami bo'yicha (icontains)"],["start_date / end_date","yaratilgan sana oralig'i"]],
+    writeFields:[
+      ["purchase","uuid","Ha","Tegishli xarid hujjati id'si"],
+      ["product_party","uuid","Ha","Mahsulot partiyasi id'si"],
+      ["roll_number","string","Yo'q","Yo'lak (runner) bo'lsa rulon raqami"],
+      ["width","decimal","Ha","Eni, metr"],
+      ["length","decimal","Yo'q","Bo'yi, metr — yo'lak uchun bo'sh bo'lishi mumkin"],
+      ["quantity","int","Yo'q","Dona gilam uchun soni — default 1"],
+      ["total_length_meters","decimal","Yo'q","Yo'lak uchun rulon uzunligi"],
+      ["price_per_sqm","decimal","Ha","Sotib olingan narx, 1 kv.m"],
+      ["subtotal","decimal","Ha","Qator summasi"]
+    ],
+    example:{id:"09102132-4356-4f65-2839-4a1b2c3d4e5f",purchase_info:{id:"f8091021-3245-4e54-1728-394a1b2c3d4e"},product_party_info:{id:"92031425-3647-4e70-c182-940516273855",name:"AKTUEL 1247, bej"},roll_number:"RL-20514",width:"4.00",length:"25.00",quantity:1,total_length_meters:"100.00",price_per_sqm:"310000.00",subtotal:"31000000.00",created_at:"2026-02-15T09:06:00+05:00",updated_at:"2026-02-15T09:06:00+05:00"},
+    extraNote:"Yaratilganda <span class=\"mono\">CarpetRoll</span>/<span class=\"mono\">StockTransaction</span> avtomatik hosil bo'lmaydi — hozircha oddiy CRUD (service-qatlam avtomatikasi rejalashtirilgan, hali yo'q). Scope — <span class=\"mono\">purchase__organization</span> orqali qo'lda cheklangan (<span class=\"mono\">TenantBranchScopeMixin</span> to'g'ridan-to'g'ri bilmaydi)."
+  },
+  {
     id:"counterparty-types", group:"finance", title:"Kontragent turlari", base:"/api/v1/finance/counterparty-types/",
     app:"finance", model:"counterpartytype", activeOnly:false,
     search:["name"], ordering:["name","created_at"],
@@ -885,6 +935,7 @@ const GROUPS = [
   {key:"org", label:"Tashkilot", links:[["countries","Davlatlar"],["regions","Viloyatlar"],["districts","Tumanlar"],["organizations","Tashkilotlar"],["branches","Filiallar"]]},
   {key:"catalog", label:"Katalog", links:[["qualities","Sifatlar"],["units","O'lchov birliklari"],["colors","Ranglar"],["designs","Dizaynlar"],["product-parties","Mahsulot partiyalari"]]},
   {key:"warehouse", label:"Ombor", links:[["warehouses","Omborlar"],["product-stocks","Ombor qoldiqlari"],["carpet-rolls","Rulonlar"],["stock-transactions","Ombor harakatlari"]]},
+  {key:"procurement", label:"Ta'minot", links:[["suppliers","Yetkazuvchilar"],["supplier-purchases","Xarid hujjatlari"],["supplier-purchase-items","Xarid qatorlari"]]},
   {key:"finance", label:"Moliya", links:[["counterparty-types","Kontragent turlari"]]},
   {key:"hr", label:"HR", links:[["employees","Xodimlar"],["positions","Lavozimlar"],["recruitment-dismissals","Ishga olish / bo'shatish"],["work-schedules","Ish grafiklari"]]},
   {key:"audits", label:"Audit", links:[["audit-logs","Loglar"]]}
