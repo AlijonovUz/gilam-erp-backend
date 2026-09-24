@@ -840,6 +840,72 @@ const RESOURCES = [
     extraNote:"Yaratilganda <span class=\"mono\">CarpetRoll</span>/<span class=\"mono\">StockTransaction</span> avtomatik hosil bo'lmaydi — hozircha oddiy CRUD (service-qatlam avtomatikasi rejalashtirilgan, hali yo'q). Scope — <span class=\"mono\">purchase__organization</span> orqali qo'lda cheklangan (<span class=\"mono\">TenantBranchScopeMixin</span> to'g'ridan-to'g'ri bilmaydi)."
   },
   {
+    id:"customers", group:"sales", title:"Mijozlar", base:"/api/v1/sales/customers/",
+    app:"sales", model:"customer", activeOnly:true,
+    search:["full_name","phone","address"], ordering:["full_name","created_at"],
+    filters:[["full_name","F.I.Sh. bo'yicha (icontains)"],["phone","telefon bo'yicha (icontains)"],["organization","tashkilot UUID (bir nechta)"],["start_date / end_date","yaratilgan sana oralig'i"]],
+    writeFields:[
+      ["organization","uuid","Ha","Tegishli tashkilot id'si"],
+      ["full_name","string","Ha","Mijoz F.I.Sh."],
+      ["phone","string","Ha","Telefon raqami"],
+      ["address","string","Yo'q",""],
+      ["balance_debt","decimal","Yo'q","Mijozning nasiya balansi — default 0, hozircha qo'lda kiritiladi"],
+      ["loyalty_discount_pct","decimal","Yo'q","Doimiy individual chegirma foizi — default 0"]
+    ],
+    example:{id:"1a2b3c4d-5e6f-4081-9203-4a1b2c3d4e5f",organization_info:{id:"4d5e6f70-8192-4a3b-cd3e-4f5061728394",name:"\"Gilam Olami\" MChJ"},full_name:"Aliyev Vali",phone:"+998901234567",address:"",balance_debt:"0.00",loyalty_discount_pct:"0.00",created_at:"2026-02-18T09:00:00+05:00",updated_at:"2026-02-18T09:00:00+05:00"},
+    extraNote:"Scope — <span class=\"mono\">organization</span> darajasida (sistem admin bo'lmasa)."
+  },
+  {
+    id:"orders", group:"sales", title:"Sotuv cheklari", base:"/api/v1/sales/orders/",
+    app:"sales", model:"order", activeOnly:true,
+    search:["customer__full_name","seller__full_name"], ordering:["created_at","final_amount"],
+    filters:[["organization","tashkilot UUID (bir nechta)"],["branch","filial UUID (bir nechta)"],["customer","mijoz UUID (bir nechta)"],["seller","sotgan xodim UUID (bir nechta)"],["payment_status","paid/partially_paid/debt/unpaid"],["order_status","pending/completed/cancelled"],["start_date / end_date","yaratilgan sana oralig'i"]],
+    writeFields:[
+      ["organization","uuid","Ha","Tashkilot id'si"],
+      ["branch","uuid","Ha","Filial id'si"],
+      ["customer","uuid","Yo'q","Mijoz id'si — bo'sh bo'lsa nomsiz xaridor"],
+      ["seller","uuid","Ha","Sotgan xodim (User) id'si"],
+      ["cashier","uuid","Yo'q","Pulni qabul qilgan xodim (User) id'si"],
+      ["total_amount","decimal","Ha","Chegirmasiz jami summa"],
+      ["discount_amount","decimal","Yo'q","Chegirma summasi — default 0"],
+      ["final_amount","decimal","Ha","Yakuniy summa"],
+      ["paid_amount","decimal","Yo'q","To'langan summa — default 0"],
+      ["debt_amount","decimal","Yo'q","Nasiya summa — default 0"],
+      ["payment_status","string","Ha","\"paid\", \"partially_paid\", \"debt\" yoki \"unpaid\""],
+      ["order_status","string","Yo'q","\"pending\" (default), \"completed\" yoki \"cancelled\""],
+      ["overlock_included","bool","Yo'q","Tikish (ovirlok) xizmati bormi — default false"],
+      ["delivery_required","bool","Yo'q","Yetkazib berish kerakmi — default false"],
+      ["delivery_address","string","Yo'q",""],
+      ["delivery_date","datetime","Yo'q",""]
+    ],
+    example:{id:"2b3c4d5e-6f70-4192-a304-5b2c3d4e5f60",organization_info:{id:"4d5e6f70-8192-4a3b-cd3e-4f5061728394",name:"\"Gilam Olami\" MChJ"},branch_info:{id:"7b6a5c4d-3e2f-41a0-9b8c-0d1e2f3a4b5c",name:"Chilonzor filiali"},customer_info:{id:"1a2b3c4d-5e6f-4081-9203-4a1b2c3d4e5f",full_name:"Aliyev Vali"},seller_info:{id:"4d2f8b10-77a1-4c9e-9b2a-1e3f4a5b6c7d",full_name:"Aziza Karimova"},cashier_info:null,total_amount:"500000.00",discount_amount:"0.00",final_amount:"500000.00",paid_amount:"500000.00",debt_amount:"0.00",payment_status:"paid",order_status:"pending",overlock_included:false,delivery_required:false,delivery_address:"",delivery_date:null,created_at:"2026-02-18T09:10:00+05:00",updated_at:"2026-02-18T09:10:00+05:00"},
+    extraNote:"Scope — <span class=\"mono\">organization</span> VA <span class=\"mono\">branch</span> darajasida birgalikda (<span class=\"mono\">TenantBranchScopeMixin</span> avtomatik aniqlaydi, ikkala maydon ham bor). <span class=\"mono\">paid_amount</span>/<span class=\"mono\">debt_amount</span>/<span class=\"mono\">payment_status</span> hozircha qo'lda kiritiladi — to'lov (<span class=\"mono\">Payment</span>) moduli qo'shilgach avtomatik hisoblanishi rejalashtirilgan."
+  },
+  {
+    id:"order-items", group:"sales", title:"Chek qatorlari", base:"/api/v1/sales/order-items/",
+    app:"sales", model:"orderitem", activeOnly:true,
+    search:["product_party__name"], ordering:["created_at"],
+    filters:[["order","chek UUID (bir nechta)"],["product_party","mahsulot partiyasi UUID (bir nechta)"],["warehouse","ombor UUID (bir nechta)"],["roll","rulon UUID (bir nechta)"],["start_date / end_date","yaratilgan sana oralig'i"]],
+    writeFields:[
+      ["order","uuid","Ha","Tegishli chek id'si"],
+      ["product_party","uuid","Ha","Mahsulot partiyasi id'si"],
+      ["roll","uuid","Yo'q","Kesilgan yo'lak bo'lsa, qaysi jismoniy rulondan kesildi"],
+      ["warehouse","uuid","Ha","Qaysi ombordan mahsulot kamaydi"],
+      ["width","decimal","Ha","Sotilgan eni, metr"],
+      ["length","decimal","Ha","Sotilgan bo'yi, metr (yo'lak bo'lsa kesib berilgan uzunlik)"],
+      ["sqm","decimal","Ha","Kvadrat metr (= width × length)"],
+      ["price_per_sqm","decimal","Ha","Sotilgan paytdagi 1 kv.m narxi"],
+      ["item_subtotal","decimal","Ha","Qator summasi (= sqm × price_per_sqm)"],
+      ["overlock_length_meters","decimal","Yo'q","Tikilgan chet uzunligi, metr — default 0"],
+      ["overlock_price_per_meter","decimal","Yo'q","Ovirlok, 1 metr narxi — default 0"],
+      ["overlock_cost","decimal","Yo'q","Jami ovirlok narxi — default 0"],
+      ["quantity","int","Yo'q","Tayyor o'lchamli dona gilamlar uchun soni — default 1"],
+      ["final_item_price","decimal","Ha","(item_subtotal + overlock_cost) × quantity"]
+    ],
+    example:{id:"3c4d5e6f-7081-4203-b405-6c3d4e5f6071",order_info:{id:"2b3c4d5e-6f70-4192-a304-5b2c3d4e5f60"},product_party_info:{id:"92031425-3647-4e70-c182-940516273855",name:"AKTUEL 1247, bej"},roll_info:null,warehouse_info:{id:"a3b4c5d6-e7f8-4910-bc2d-3e4f50617299",name:"Asosiy ombor"},width:"2.00",length:"3.00",sqm:"6.00",price_per_sqm:"420000.00",item_subtotal:"2520000.00",overlock_length_meters:"0.00",overlock_price_per_meter:"0.00",overlock_cost:"0.00",quantity:1,final_item_price:"2520000.00",created_at:"2026-02-18T09:11:00+05:00",updated_at:"2026-02-18T09:11:00+05:00"},
+    extraNote:"<span class=\"mono\">sqm</span>/<span class=\"mono\">item_subtotal</span>/<span class=\"mono\">final_item_price</span> avtomatik hisoblanmaydi — hozircha so'rovda to'g'ridan-to'g'ri beriladi (service-qatlam avtomatikasi rejalashtirilgan, hali yo'q). Sotuvda ombor qoldig'i (<span class=\"mono\">ProductStock</span>/<span class=\"mono\">CarpetRoll</span>) va <span class=\"mono\">StockTransaction</span> ham avtomatik yangilanmaydi. Scope — <span class=\"mono\">order__organization</span> va <span class=\"mono\">order__branch</span> orqali qo'lda cheklangan (<span class=\"mono\">TenantBranchScopeMixin</span> to'g'ridan-to'g'ri bilmaydi)."
+  },
+  {
     id:"counterparty-types", group:"finance", title:"Kontragent turlari", base:"/api/v1/finance/counterparty-types/",
     app:"finance", model:"counterpartytype", activeOnly:false,
     search:["name"], ordering:["name","created_at"],
@@ -936,6 +1002,7 @@ const GROUPS = [
   {key:"catalog", label:"Katalog", links:[["qualities","Sifatlar"],["units","O'lchov birliklari"],["colors","Ranglar"],["designs","Dizaynlar"],["product-parties","Mahsulot partiyalari"]]},
   {key:"warehouse", label:"Ombor", links:[["warehouses","Omborlar"],["product-stocks","Ombor qoldiqlari"],["carpet-rolls","Rulonlar"],["stock-transactions","Ombor harakatlari"]]},
   {key:"procurement", label:"Ta'minot", links:[["suppliers","Yetkazuvchilar"],["supplier-purchases","Xarid hujjatlari"],["supplier-purchase-items","Xarid qatorlari"]]},
+  {key:"sales", label:"Savdo", links:[["customers","Mijozlar"],["orders","Sotuv cheklari"],["order-items","Chek qatorlari"]]},
   {key:"finance", label:"Moliya", links:[["counterparty-types","Kontragent turlari"]]},
   {key:"hr", label:"HR", links:[["employees","Xodimlar"],["positions","Lavozimlar"],["recruitment-dismissals","Ishga olish / bo'shatish"],["work-schedules","Ish grafiklari"]]},
   {key:"audits", label:"Audit", links:[["audit-logs","Loglar"]]}
