@@ -726,6 +726,70 @@ const RESOURCES = [
     example:{id:"92031425-3647-4e70-c182-940516273855",branch_info:{id:"7b6a5c4d-3e2f-41a0-9b8c-0d1e2f3a4b5c",name:"Chilonzor filiali"},party_number:"P-001",name:"1-partiya",quality_info:{id:"5e6f7081-9203-4a3c-8d4e-506172839405",name:"Premium"},design_info:{id:"81920314-2536-4d6f-b071-839405162700",name:"Zar Gul"},color_info:{id:"70819203-1425-4c5e-af60-728394051627",name:"Qizil"},unit_info:{id:"6f708192-0314-4b4d-9e5f-617283940516",name:"kv.m"},description:"",barcode:"4780000000123",is_runner:false,price_per_sqm_purchase:"100000.00",price_per_sqm_sale:"150000.00",created_at:"2026-02-05T09:00:00+05:00",updated_at:"2026-02-05T09:00:00+05:00"}
   },
   {
+    id:"warehouses", group:"warehouse", title:"Omborlar", base:"/api/v1/warehouse/warehouses/",
+    app:"warehouse", model:"warehouse", activeOnly:true,
+    search:["name","address","branch__name"], ordering:["name","created_at"],
+    filters:[["name","nomi bo'yicha (icontains)"],["branch","filial UUID (bir nechta)"],["start_date / end_date","yaratilgan sana oralig'i"]],
+    writeFields:[
+      ["branch","uuid","Ha","Tegishli filial id'si"],
+      ["name","string","Ha","Ombor nomi, masalan \"Asosiy ombor\""],
+      ["address","string","Yo'q","Manzil"]
+    ],
+    example:{id:"a3b4c5d6-e7f8-4910-bc2d-3e4f50617299",branch_info:{id:"7b6a5c4d-3e2f-41a0-9b8c-0d1e2f3a4b5c",name:"Chilonzor filiali"},name:"Asosiy ombor",address:"Chilonzor tumani, Bunyodkor ko'chasi 12A",created_at:"2026-02-10T09:00:00+05:00",updated_at:"2026-02-10T09:00:00+05:00"},
+    extraNote:"Ro'yxat va bitta yozuv so'rovlari faqat <span class=\"mono\">branch</span> orqali foydalanuvchiga ruxsat etilgan filiallar bilan cheklanadi (<span class=\"mono\">TenantBranchScopeMixin</span> — sistem admin bo'lmasa)."
+  },
+  {
+    id:"product-stocks", group:"warehouse", title:"Ombor qoldiqlari", base:"/api/v1/warehouse/product-stocks/",
+    app:"warehouse", model:"productstock", activeOnly:true,
+    search:["warehouse__name","product_party__name"], ordering:["created_at","quantity","total_length_meters"],
+    filters:[["warehouse","ombor UUID (bir nechta)"],["product_party","mahsulot partiyasi UUID (bir nechta)"],["start_date / end_date","yaratilgan sana oralig'i"]],
+    writeFields:[
+      ["warehouse","uuid","Ha","Tegishli ombor id'si"],
+      ["product_party","uuid","Ha","Mahsulot partiyasi id'si"],
+      ["quantity","int","Yo'q","Dona gilamlar soni — default 0"],
+      ["total_length_meters","decimal","Yo'q","Yo'laklar (runner) uchun jami metr uzunlik — default 0"]
+    ],
+    example:{id:"b4c5d6e7-f809-4a21-cd3e-4f5061729a10",warehouse_info:{id:"a3b4c5d6-e7f8-4910-bc2d-3e4f50617299",name:"Asosiy ombor"},product_party_info:{id:"92031425-3647-4e70-c182-940516273855",name:"1-partiya"},quantity:10,total_length_meters:"0.00",created_at:"2026-02-12T09:00:00+05:00",updated_at:"2026-02-12T09:00:00+05:00"},
+    extraNote:"(<span class=\"mono\">warehouse</span>, <span class=\"mono\">product_party</span>) juftligi unikal — bitta ombor/partiya uchun bitta qoldiq yozuvi bo'ladi (qayta yaratishga urinish 400 bilan rad etiladi). Ro'yxat/bitta yozuv so'rovlari <span class=\"mono\">warehouse__branch</span> orqali foydalanuvchiga ruxsat etilgan filiallar bilan cheklanadi (sistem admin bo'lmasa)."
+  },
+  {
+    id:"carpet-rolls", group:"warehouse", title:"Rulonlar", base:"/api/v1/warehouse/carpet-rolls/",
+    app:"warehouse", model:"carpetroll", activeOnly:true,
+    search:["roll_number","product_party__name","warehouse__name"], ordering:["roll_number","created_at","current_length_meters"],
+    filters:[["roll_number","rulon raqami bo'yicha (icontains)"],["product_party","mahsulot partiyasi UUID (bir nechta)"],["warehouse","ombor UUID (bir nechta)"],["status","active/sold_out/damaged"],["is_offcut","true/false — qiyqim (kesilgan qoldiq)"],["start_date / end_date","yaratilgan sana oralig'i"]],
+    writeFields:[
+      ["product_party","uuid","Ha","Mahsulot partiyasi id'si"],
+      ["warehouse","uuid","Ha","Tegishli ombor id'si"],
+      ["roll_number","string","Ha","Rulon raqami — noyob bo'lishi shart"],
+      ["initial_length_meters","decimal","Ha","Boshlang'ich uzunligi, metr"],
+      ["current_length_meters","decimal","Ha","Hozirgi qolgan uzunligi, metr"],
+      ["is_offcut","bool","Yo'q","Katta rulondan kesilgan qoldiq (qiyqim)mi — default false"],
+      ["status","string","Yo'q","\"active\", \"sold_out\" yoki \"damaged\" — default \"active\""]
+    ],
+    example:{id:"c5d6e7f8-0912-4b32-de4f-5061728394a1",product_party_info:{id:"92031425-3647-4e70-c182-940516273855",name:"1-partiya"},warehouse_info:{id:"a3b4c5d6-e7f8-4910-bc2d-3e4f50617299",name:"Asosiy ombor"},roll_number:"RL-20514",initial_length_meters:"30.00",current_length_meters:"25.00",is_offcut:false,status:"active",created_at:"2026-02-12T09:05:00+05:00",updated_at:"2026-02-12T09:05:00+05:00"},
+    extraNote:"Ro'yxat/bitta yozuv so'rovlari <span class=\"mono\">warehouse__branch</span> orqali foydalanuvchiga ruxsat etilgan filiallar bilan cheklanadi (sistem admin bo'lmasa)."
+  },
+  {
+    id:"stock-transactions", group:"warehouse", title:"Ombor harakatlari", base:"/api/v1/warehouse/stock-transactions/",
+    app:"warehouse", model:"stocktransaction", activeOnly:true,
+    ordering:["created_at"],
+    filters:[["organization","tashkilot UUID (bir nechta)"],["product_party","mahsulot partiyasi UUID (bir nechta)"],["roll","rulon UUID (bir nechta)"],["from_warehouse","qaysi ombordan UUID (bir nechta)"],["to_warehouse","qaysi omborga UUID (bir nechta)"],["transaction_type","in/out/transfer"],["ref_type","sale/return/purchase/adjustment/transfer"],["ref_id","bog'liq hujjat UUID'si"],["start_date / end_date","yaratilgan sana oralig'i"]],
+    writeFields:[
+      ["organization","uuid","Ha","Tashkilot id'si"],
+      ["product_party","uuid","Ha","Mahsulot partiyasi id'si"],
+      ["roll","uuid","Yo'q","Yo'lak (runner) bo'lsa, qaysi rulonda o'zgarish bo'ldi"],
+      ["from_warehouse","uuid","Yo'q","Qaysi ombordan — kirim bo'lsa bo'sh"],
+      ["to_warehouse","uuid","Yo'q","Qaysi omborga — chiqim bo'lsa bo'sh"],
+      ["transaction_type","string","Ha","\"in\" (kirim), \"out\" (chiqim) yoki \"transfer\" (ko'chirish)"],
+      ["quantity","int","Yo'q","Dona gilamlar soni — default 0"],
+      ["length_meters","decimal","Yo'q","Yo'laklar uchun metr uzunlik — default 0"],
+      ["ref_type","string","Yo'q","\"sale\", \"return\", \"purchase\", \"adjustment\" yoki \"transfer\""],
+      ["ref_id","uuid","Yo'q","Bog'liq hujjat id'si (masalan kelajakdagi Order/SupplierPurchase/ReturnOrder)"]
+    ],
+    example:{id:"d6e7f809-1023-4c43-ef50-61728394a1b2",organization_info:{id:"4d5e6f70-8192-4a3b-cd3e-4f5061728394",name:"\"Gilam Olami\" MChJ"},product_party_info:{id:"92031425-3647-4e70-c182-940516273855",name:"1-partiya"},roll_info:{id:"c5d6e7f8-0912-4b32-de4f-5061728394a1",roll_number:"RL-20514"},from_warehouse_info:null,to_warehouse_info:{id:"a3b4c5d6-e7f8-4910-bc2d-3e4f50617299",name:"Asosiy ombor"},transaction_type:"in",quantity:0,length_meters:"25.00",ref_type:"purchase",ref_id:null,created_at:"2026-02-12T09:10:00+05:00",updated_at:"2026-02-12T09:10:00+05:00"},
+    extraNote:"Bu — audit/ledger jadvali: hozircha oddiy CRUD orqali qo'lda yoziladi. Kelajakda Xarid/Savdo/Qaytarish modullari qo'shilganda, shu yozuvlar o'sha hujjatlar saqlanganda <b>avtomatik</b> (service qatlamida) hosil qilinishi rejalashtirilgan — hozircha bunday avtomatika yo'q. <span class=\"mono\">ref_id</span> hali hech qanday FK bilan bog'lanmagan (bog'liq modellar mavjud emas), shuning uchun erkin UUID sifatida saqlanadi. Scope — <span class=\"mono\">organization</span> darajasida (filial emas, chunki <span class=\"mono\">TRANSFER</span> filiallar orasida bo'lishi mumkin)."
+  },
+  {
     id:"counterparty-types", group:"finance", title:"Kontragent turlari", base:"/api/v1/finance/counterparty-types/",
     app:"finance", model:"counterpartytype", activeOnly:false,
     search:["name"], ordering:["name","created_at"],
@@ -820,6 +884,7 @@ const GROUPS = [
   {key:"accounts", label:"Accounts", links:[["roles","Rollar"],["users","Foydalanuvchilar"]]},
   {key:"org", label:"Tashkilot", links:[["countries","Davlatlar"],["regions","Viloyatlar"],["districts","Tumanlar"],["organizations","Tashkilotlar"],["branches","Filiallar"]]},
   {key:"catalog", label:"Katalog", links:[["qualities","Sifatlar"],["units","O'lchov birliklari"],["colors","Ranglar"],["designs","Dizaynlar"],["product-parties","Mahsulot partiyalari"]]},
+  {key:"warehouse", label:"Ombor", links:[["warehouses","Omborlar"],["product-stocks","Ombor qoldiqlari"],["carpet-rolls","Rulonlar"],["stock-transactions","Ombor harakatlari"]]},
   {key:"finance", label:"Moliya", links:[["counterparty-types","Kontragent turlari"]]},
   {key:"hr", label:"HR", links:[["employees","Xodimlar"],["positions","Lavozimlar"],["recruitment-dismissals","Ishga olish / bo'shatish"],["work-schedules","Ish grafiklari"]]},
   {key:"audits", label:"Audit", links:[["audit-logs","Loglar"]]}
