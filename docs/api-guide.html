@@ -906,6 +906,37 @@ const RESOURCES = [
     extraNote:"<span class=\"mono\">sqm</span>/<span class=\"mono\">item_subtotal</span>/<span class=\"mono\">final_item_price</span> avtomatik hisoblanmaydi — hozircha so'rovda to'g'ridan-to'g'ri beriladi (service-qatlam avtomatikasi rejalashtirilgan, hali yo'q). Sotuvda ombor qoldig'i (<span class=\"mono\">ProductStock</span>/<span class=\"mono\">CarpetRoll</span>) va <span class=\"mono\">StockTransaction</span> ham avtomatik yangilanmaydi. Scope — <span class=\"mono\">order__organization</span> va <span class=\"mono\">order__branch</span> orqali qo'lda cheklangan (<span class=\"mono\">TenantBranchScopeMixin</span> to'g'ridan-to'g'ri bilmaydi)."
   },
   {
+    id:"return-orders", group:"sales", title:"Qaytarish hujjatlari", base:"/api/v1/sales/return-orders/",
+    app:"sales", model:"returnorder", activeOnly:true,
+    search:["customer__full_name","reason"], ordering:["created_at","refund_amount"],
+    filters:[["organization","tashkilot UUID (bir nechta)"],["branch","filial UUID (bir nechta)"],["order","chek UUID (bir nechta)"],["customer","mijoz UUID (bir nechta)"],["start_date / end_date","yaratilgan sana oralig'i"]],
+    writeFields:[
+      ["organization","uuid","Ha","Tashkilot id'si"],
+      ["branch","uuid","Ha","Filial id'si"],
+      ["order","uuid","Ha","Qaysi sotuv cheki bo'yicha qaytarilgan"],
+      ["customer","uuid","Yo'q","Mijoz id'si"],
+      ["refund_amount","decimal","Ha","Mijozga qaytarilgan summa"],
+      ["reason","string","Yo'q","Qaytarish sababi"]
+    ],
+    example:{id:"81920314-2536-4d6f-1728-394a1b2c3d4e",organization_info:{id:"4d5e6f70-8192-4a3b-cd3e-4f5061728394",name:"\"Gilam Olami\" MChJ"},branch_info:{id:"7b6a5c4d-3e2f-41a0-9b8c-0d1e2f3a4b5c",name:"Chilonzor filiali"},order_info:{id:"2b3c4d5e-6f70-4192-a304-5b2c3d4e5f60"},customer_info:{id:"1a2b3c4d-5e6f-4081-9203-4a1b2c3d4e5f",full_name:"Aliyev Vali"},refund_amount:"150000.00",reason:"Sifatsiz mahsulot",created_at:"2026-02-22T09:00:00+05:00",updated_at:"2026-02-22T09:00:00+05:00"},
+    extraNote:"Scope — <span class=\"mono\">organization</span> VA <span class=\"mono\">branch</span> darajasida birgalikda (<span class=\"mono\">TenantBranchScopeMixin</span> avtomatik aniqlaydi, ikkala maydon ham bor)."
+  },
+  {
+    id:"return-items", group:"sales", title:"Qaytarish qatorlari", base:"/api/v1/sales/return-items/",
+    app:"sales", model:"returnitem", activeOnly:true,
+    ordering:["created_at"],
+    filters:[["return_order","qaytarish hujjati UUID (bir nechta)"],["order_item","sotilgan chek qatori UUID (bir nechta)"],["restock_status","restocked/damaged_scrap"],["start_date / end_date","yaratilgan sana oralig'i"]],
+    writeFields:[
+      ["return_order","uuid","Ha","Tegishli qaytarish hujjati id'si"],
+      ["order_item","uuid","Ha","Qaysi sotilgan chek qatoridan qaytarilgan"],
+      ["quantity","int","Yo'q","Dona gilamlar uchun soni — default 1"],
+      ["length_meters","decimal","Yo'q","Yo'laklar uchun qaytarilgan metr uzunligi — default 0"],
+      ["restock_status","string","Ha","\"restocked\" (omborga qaytarildi) yoki \"damaged_scrap\" (brak, hisobdan o'chirildi)"]
+    ],
+    example:{id:"92031425-3647-4e70-2839-4a1b2c3d4e5f",return_order_info:{id:"81920314-2536-4d6f-1728-394a1b2c3d4e"},order_item_info:{id:"3c4d5e6f-7081-4203-b405-6c3d4e5f6071"},quantity:1,length_meters:"0.00",restock_status:"restocked",created_at:"2026-02-22T09:01:00+05:00",updated_at:"2026-02-22T09:01:00+05:00"},
+    extraNote:"Bu resursda to'g'ridan-to'g'ri <span class=\"mono\">organization</span>/<span class=\"mono\">branch</span> maydoni yo'q — scope <span class=\"mono\">return_order__organization</span> va <span class=\"mono\">return_order__branch</span> orqali qo'lda cheklangan (<span class=\"mono\">TenantBranchScopeMixin</span> to'g'ridan-to'g'ri bilmaydi). Yaratilganda <span class=\"mono\">ProductStock</span>/<span class=\"mono\">StockTransaction</span> avtomatik yangilanmaydi — hozircha oddiy CRUD."
+  },
+  {
     id:"counterparty-types", group:"finance", title:"Kontragent turlari", base:"/api/v1/finance/counterparty-types/",
     app:"finance", model:"counterpartytype", activeOnly:false,
     search:["name"], ordering:["name","created_at"],
@@ -1072,7 +1103,7 @@ const GROUPS = [
   {key:"catalog", label:"Katalog", links:[["qualities","Sifatlar"],["units","O'lchov birliklari"],["colors","Ranglar"],["designs","Dizaynlar"],["product-parties","Mahsulot partiyalari"]]},
   {key:"warehouse", label:"Ombor", links:[["warehouses","Omborlar"],["product-stocks","Ombor qoldiqlari"],["carpet-rolls","Rulonlar"],["stock-transactions","Ombor harakatlari"]]},
   {key:"procurement", label:"Ta'minot", links:[["suppliers","Yetkazuvchilar"],["supplier-purchases","Xarid hujjatlari"],["supplier-purchase-items","Xarid qatorlari"]]},
-  {key:"sales", label:"Savdo", links:[["customers","Mijozlar"],["orders","Sotuv cheklari"],["order-items","Chek qatorlari"]]},
+  {key:"sales", label:"Savdo", links:[["customers","Mijozlar"],["orders","Sotuv cheklari"],["order-items","Chek qatorlari"],["return-orders","Qaytarish hujjatlari"],["return-items","Qaytarish qatorlari"]]},
   {key:"finance", label:"Moliya", links:[["counterparty-types","Kontragent turlari"],["payments","To'lovlar"],["debt-ledgers","Nasiya daftari"],["installment-agreements","Muddatli to'lov shartnomalari"],["installment-schedules","Oylik to'lov grafiklari"]]},
   {key:"hr", label:"HR", links:[["employees","Xodimlar"],["positions","Lavozimlar"],["recruitment-dismissals","Ishga olish / bo'shatish"],["work-schedules","Ish grafiklari"]]},
   {key:"audits", label:"Audit", links:[["audit-logs","Loglar"]]}
