@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from apps.base.models import BaseModel
@@ -13,10 +14,18 @@ class WorkSchedule(BaseModel):
     )
     name = models.CharField(max_length=100, verbose_name="Nomi")
     description = models.TextField(blank=True, default="", verbose_name="Tavsifi")
-    from_date = models.DateField(verbose_name="Boshlanish sanasi")
-    to_date = models.DateField(verbose_name="Tugash sanasi")
+    from_date = models.DateField(
+        null=True, blank=True, verbose_name="Boshlanish sanasi"
+    )
+    to_date = models.DateField(null=True, blank=True, verbose_name="Tugash sanasi")
     from_hour = models.TimeField(verbose_name="Boshlanish vaqti")
     to_hour = models.TimeField(verbose_name="Tugash vaqti")
+    work_days = ArrayField(
+        models.PositiveSmallIntegerField(),
+        default=list,
+        verbose_name="Ish kunlari",
+        help_text="0 — dushanba, 6 — yakshanba",
+    )
 
     class Meta:
         db_table = "hr_work_schedule"

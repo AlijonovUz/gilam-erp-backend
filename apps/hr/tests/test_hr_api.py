@@ -608,11 +608,77 @@ class WorkScheduleAPITestCase(HRBaseAPITestCase):
             "to_date": "2026-12-31",
             "from_hour": "14:00:00",
             "to_hour": "23:00:00",
+            "work_days": [4, 0, 1, 2, 3],
         }
         response = self.client.post("/api/v1/hr/work-schedules/", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["from_date"], "2026-01-01")
+        self.assertEqual(response.data["work_days"], [0, 1, 2, 3, 4])
         self.assertTrue(response.data["status"])
+
+    def test_create_work_schedule_without_dates_success(self):
+        self.client.force_authenticate(self.user_org1)
+        data = {
+            "name": "Sanasiz grafik",
+            "branch": str(self.branch1.id),
+            "from_hour": "09:00:00",
+            "to_hour": "18:00:00",
+            "work_days": [0, 1, 2],
+        }
+        response = self.client.post("/api/v1/hr/work-schedules/", data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIsNone(response.data["from_date"])
+
+    def test_create_work_schedule_invalid_work_days(self):
+        self.client.force_authenticate(self.user_org1)
+        base = {
+            "name": "Kunlar",
+            "branch": str(self.branch1.id),
+            "from_hour": "09:00:00",
+            "to_hour": "18:00:00",
+        }
+        for bad in ([], [1, 1], [7]):
+            response = self.client.post(
+                "/api/v1/hr/work-schedules/",
+                {**base, "work_days": bad},
+                format="json",
+            )
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, bad)
+            self.assertIn("work_days", response.data, bad)
+
+    def test_create_work_schedule_invalid_hours(self):
+        self.client.force_authenticate(self.user_org1)
+        data = {
+            "name": "Noto'g'ri vaqt",
+            "branch": str(self.branch1.id),
+            "from_hour": "18:00:00",
+            "to_hour": "09:00:00",
+            "work_days": [0],
+        }
+        response = self.client.post("/api/v1/hr/work-schedules/", data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_filter_work_schedules_by_work_day(self):
+        monday = WorkSchedule.objects.create(
+            branch=self.branch1,
+            name="Dushanba",
+            from_hour=datetime.time(9, 0),
+            to_hour=datetime.time(18, 0),
+            work_days=[0],
+        )
+        sunday = WorkSchedule.objects.create(
+            branch=self.branch1,
+            name="Yakshanba",
+            from_hour=datetime.time(9, 0),
+            to_hour=datetime.time(18, 0),
+            work_days=[6],
+        )
+        self.client.force_authenticate(self.user_org1)
+        response = self.client.get("/api/v1/hr/work-schedules/?work_day=0")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ids = [item["id"] for item in response.data["results"]]
+        self.assertIn(str(monday.id), ids)
+        self.assertNotIn(str(sunday.id), ids)
 
     def test_create_work_schedule_invalid_dates(self):
         self.client.force_authenticate(self.user_org1)
@@ -623,6 +689,7 @@ class WorkScheduleAPITestCase(HRBaseAPITestCase):
             "to_date": "2026-01-01",
             "from_hour": "09:00:00",
             "to_hour": "18:00:00",
+            "work_days": [0],
         }
         response = self.client.post("/api/v1/hr/work-schedules/", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

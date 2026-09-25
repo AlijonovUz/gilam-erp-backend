@@ -881,17 +881,18 @@ const RESOURCES = [
     id:"work-schedules", group:"hr", title:"Ish grafiklari", base:"/api/v1/hr/work-schedules/",
     app:"hr", model:"workschedule", activeOnly:false,
     search:["name","description"], ordering:["name","from_date","to_date","created_at","updated_at"],
-    filters:[["branch","filial UUID"],["name","nomi bo'yicha (icontains)"],["is_active","true/false — Holati: Faol/Nofaol"],["start_date / end_date","yaratilgan sana oralig'i"],["updated_start_date / updated_end_date","o'zgartirilgan sana oralig'i"]],
+    filters:[["branch","filial UUID"],["name","nomi bo'yicha (icontains)"],["is_active","true/false — Holati: Faol/Nofaol"],["work_day","0–6 — shu hafta kuni ishlaydigan grafiklar"],["start_date / end_date","yaratilgan sana oralig'i"],["updated_start_date / updated_end_date","o'zgartirilgan sana oralig'i"]],
     writeFields:[
       ["branch","uuid","Ha","Tegishli filial id'si"],
       ["name","string","Ha","Grafik nomi, masalan \"Kechki smena\""],
       ["description","string","Yo'q","Tavsif"],
-      ["from_date","date","Ha","Boshlanish sanasi, YYYY-MM-DD"],
-      ["to_date","date","Ha","Tugash sanasi, YYYY-MM-DD (from_date dan oldin bo'lmasligi kerak)"],
+      ["from_date","date","Yo'q","Boshlanish sanasi, YYYY-MM-DD"],
+      ["to_date","date","Yo'q","Tugash sanasi, YYYY-MM-DD (from_date dan oldin bo'lmasligi kerak)"],
       ["from_hour","time","Ha","Boshlanish vaqti, HH:MM:SS"],
-      ["to_hour","time","Ha","Tugash vaqti, HH:MM:SS"]
+      ["to_hour","time","Ha","Tugash vaqti, HH:MM:SS (from_hour dan keyin bo'lishi kerak)"],
+      ["work_days","int[]","Ha","Ish kunlari: 0=Du, 1=Se, 2=Ch, 3=Pa, 4=Ju, 5=Sh, 6=Ya. Kamida bitta, takrorlanmasin; saqlashda saralanadi, masalan [0,1,2,3,4]"]
     ],
-    example:{id:"6f7081a2-3849-4506-9172-839405162839",branch_info:{id:"7b6a5c4d-3e2f-41a0-9b8c-0d1e2f3a4b5c",name:"Chilonzor filiali"},name:"Kechki smena",description:"14:00-23:00",from_date:"2026-01-01",to_date:"2026-12-31",from_hour:"14:00:00",to_hour:"23:00:00",status:true,created_at:"2026-01-12T09:28:00+05:00",updated_at:"2026-08-19T10:42:00+05:00"},
+    example:{id:"6f7081a2-3849-4506-9172-839405162839",branch_info:{id:"7b6a5c4d-3e2f-41a0-9b8c-0d1e2f3a4b5c",name:"Chilonzor filiali"},name:"Kechki smena",description:"14:00-23:00",from_date:"2026-01-01",to_date:"2026-12-31",from_hour:"14:00:00",work_days:[0,1,2,3,4],to_hour:"23:00:00",status:true,created_at:"2026-01-12T09:28:00+05:00",updated_at:"2026-08-19T10:42:00+05:00"},
     extraNote:"<span class=\"mono\">status</span> — <span class=\"mono\">is_active</span>ning ochiq ko'rinishi (Holati: Faol/Nofaol); o'chirilgan (soft-delete) yozuvlar ro'yxatdan yo'qolmaydi, <span class=\"mono\">status:false</span> bilan qoladi. Grafikning alohida kunlari (bayram, qisman ish kuni) — <a href=\"#work-schedule-items\">Ish grafigi kunlari</a>."
   },
   {
