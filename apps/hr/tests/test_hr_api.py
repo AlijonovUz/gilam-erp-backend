@@ -1102,6 +1102,38 @@ class RecruitmentDismissalAPITestCase(HRBaseAPITestCase):
             rec_dism_date=datetime.date(2026, 1, 10),
         )
 
+    def test_create_recruitment_before_last_dismissal_date_invalid_data(self):
+        self._create_active_recruitment(self.emp1)
+        self.client.force_authenticate(self.user_org1)
+        self.client.post(
+            "/api/v1/hr/recruitment-dismissals/dismiss/",
+            {"employee": str(self.emp1.id), "dismissal_reason": "Ariza"},
+            format="json",
+        )
+        item = self._recruitment_item(self.emp1, "8600123456789055")
+        item["rec_dism_date"] = "2026-01-15"
+        response = self.client.post(
+            "/api/v1/hr/recruitment-dismissals/", item, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("rec_dism_date", response.data)
+
+    def test_bulk_dismiss_duplicate_employee_invalid_data(self):
+        self._create_active_recruitment(self.emp1)
+        self.client.force_authenticate(self.user_org1)
+        response = self.client.post(
+            "/api/v1/hr/recruitment-dismissals/bulk-dismiss/",
+            {"employees": [str(self.emp1.id), str(self.emp1.id)]},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("employees", response.data)
+        self.assertFalse(
+            RecruitmentDismissal.objects.filter(
+                employee=self.emp1, type=RecruitmentDismissal.Type.DISMISSAL
+            ).exists()
+        )
+
     def test_bulk_create_recruitment_duplicate_employee_invalid_data(self):
         self.client.force_authenticate(self.user_org1)
         data = {
