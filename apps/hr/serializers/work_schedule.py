@@ -2,11 +2,22 @@ from rest_framework import serializers
 
 from apps.base.serializers import BaseModelSerializer
 
-from ..models import WorkSchedule, WorkScheduleItem
+from ..models import Weekday, WorkSchedule, WorkScheduleItem
 
 
 class WorkScheduleSerializer(BaseModelSerializer):
     status = serializers.SerializerMethodField(read_only=True)
+    work_days = serializers.ListField(
+        child=serializers.ChoiceField(
+            choices=Weekday.choices,
+            error_messages={
+                "invalid_choice": "Ish kuni 0 dan 6 gacha bo'lishi kerak.",
+            },
+        ),
+        allow_empty=True,
+        help_text="0=Dushanba, 1=Seshanba, 2=Chorshanba, 3=Payshanba, "
+        "4=Juma, 5=Shanba, 6=Yakshanba",
+    )
 
     class Meta:
         model = WorkSchedule
@@ -27,18 +38,15 @@ class WorkScheduleSerializer(BaseModelSerializer):
         related_fields = {
             "branch": {"fields": ["id", "name"]},
         }
-        extra_kwargs = {"work_days": {"required": True, "allow_empty": True}}
 
     def get_status(self, obj):
         """`is_active`ni `Holati` sifatida ochiq qaytaradi (BaseModelSerializer uni yashiradi)."""
         return obj.is_active
 
     def validate_work_days(self, value):
-        """Ish kunlari 0–6 oralig'ida, takrorlanmaydigan va bo'sh bo'lmagan bo'lishini tekshiradi."""
+        """Ish kunlari bo'sh yoki takroriy bo'lmasligini tekshirib, saralab qaytaradi."""
         if not value:
             raise serializers.ValidationError("Kamida bitta ish kuni tanlanishi kerak.")
-        if any(day < 0 or day > 6 for day in value):
-            raise serializers.ValidationError("Ish kuni 0 dan 6 gacha bo'lishi kerak.")
         if len(value) != len(set(value)):
             raise serializers.ValidationError("Ish kunlari takrorlanmasligi kerak.")
         return sorted(value)

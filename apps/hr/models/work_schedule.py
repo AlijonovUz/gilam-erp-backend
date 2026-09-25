@@ -4,6 +4,18 @@ from django.db import models
 from apps.base.models import BaseModel
 
 
+class Weekday(models.IntegerChoices):
+    """Hafta kunlari — `WorkSchedule.work_days` massividagi qiymatlar."""
+
+    MONDAY = 0, "Dushanba"
+    TUESDAY = 1, "Seshanba"
+    WEDNESDAY = 2, "Chorshanba"
+    THURSDAY = 3, "Payshanba"
+    FRIDAY = 4, "Juma"
+    SATURDAY = 5, "Shanba"
+    SUNDAY = 6, "Yakshanba"
+
+
 class WorkSchedule(BaseModel):
     branch = models.ForeignKey(
         "organization.Branch",
@@ -21,10 +33,11 @@ class WorkSchedule(BaseModel):
     from_hour = models.TimeField(verbose_name="Boshlanish vaqti")
     to_hour = models.TimeField(verbose_name="Tugash vaqti")
     work_days = ArrayField(
-        models.PositiveSmallIntegerField(),
+        models.PositiveSmallIntegerField(choices=Weekday.choices),
         default=list,
         verbose_name="Ish kunlari",
-        help_text="0 — dushanba, 6 — yakshanba",
+        help_text="0=Dushanba, 1=Seshanba, 2=Chorshanba, 3=Payshanba, "
+        "4=Juma, 5=Shanba, 6=Yakshanba. Masalan: [0, 1, 2, 3, 4]",
     )
 
     class Meta:

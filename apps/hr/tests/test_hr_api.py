@@ -637,14 +637,21 @@ class WorkScheduleAPITestCase(HRBaseAPITestCase):
             "from_hour": "09:00:00",
             "to_hour": "18:00:00",
         }
-        for bad in ([], [1, 1], [7]):
+        cases = {
+            (): "Kamida bitta ish kuni tanlanishi kerak.",
+            (1, 1): "Ish kunlari takrorlanmasligi kerak.",
+            (7,): "Ish kuni 0 dan 6 gacha bo'lishi kerak.",
+            (18,): "Ish kuni 0 dan 6 gacha bo'lishi kerak.",
+            (90,): "Ish kuni 0 dan 6 gacha bo'lishi kerak.",
+        }
+        for bad, message in cases.items():
             response = self.client.post(
                 "/api/v1/hr/work-schedules/",
-                {**base, "work_days": bad},
+                {**base, "work_days": list(bad)},
                 format="json",
             )
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, bad)
-            self.assertIn("work_days", response.data, bad)
+            self.assertIn(message, str(response.data["work_days"]), bad)
 
     def test_create_work_schedule_invalid_hours(self):
         self.client.force_authenticate(self.user_org1)
